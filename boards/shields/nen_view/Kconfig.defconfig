@@ -1,6 +1,0 @@
-if SHIELD_NEN_VIEW
-
-config LV_Z_VDB_SIZE
-	default 100
-
-endif

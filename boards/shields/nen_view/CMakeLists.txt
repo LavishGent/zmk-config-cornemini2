@@ -1,5 +1,0 @@
-if(CONFIG_SHIELD_NEN_VIEW AND CONFIG_ZMK_DISPLAY)
-    zephyr_library_named(nen_view)
-    zephyr_library_sources(widgets/killua_status.c)
-    zephyr_library_include_directories(widgets/)
-endif()
