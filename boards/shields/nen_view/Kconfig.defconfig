@@ -3,7 +3,4 @@ if SHIELD_NEN_VIEW
 config LV_Z_VDB_SIZE
 	default 100
 
-config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
-	default y
-
 endif
