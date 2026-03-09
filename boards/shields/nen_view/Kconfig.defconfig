@@ -31,6 +31,7 @@ config NEN_VIEW_WIDGET_STATUS
 	bool "Nen view Killua status widget"
 	select LV_FONT_MONTSERRAT_16
 	select LV_USE_IMG
+	select LV_USE_LINE
 	select LV_USE_CANVAS
 
 config NEN_VIEW_WIDGET_INVERTED
