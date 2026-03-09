@@ -4,9 +4,14 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
+    - name: GPeye
+      url-base: https://github.com/GPeye
   projects:
     - name: zmk
       remote: zmkfirmware
       import: app/west.yml
+    - name: urchin-peripheral-animation
+      remote: GPeye
+      revision: main
   self:
     path: config
