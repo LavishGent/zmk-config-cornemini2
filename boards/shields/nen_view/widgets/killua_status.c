@@ -39,17 +39,20 @@ static const int bolts_per_level[] = {0, 3, 8, 12};
 #define NUM_BOLTS 12
 
 static lv_obj_t *aura_label;
-static lv_obj_t *killua_img;
+static lv_obj_t *sprite_canvas;
 static lv_obj_t *bolt_objs[NUM_BOLTS];
 static int current_level = -1;
+
+/* Canvas buffer for the sprite (small - only sprite area) */
+static lv_color_t sprite_buf[KILLUA_WIDTH * KILLUA_HEIGHT];
 
 /* --- Lightning Bolt Definitions ---
  * Zigzag polylines radiating from Killua's body.
  * Sprite is at (68,14), size 24x40, center ~(80,34).
  *
- * Level 1 (Ren):     bolts 0-2   (hair sparks)
- * Level 2 (Hatsu):   bolts 0-7   (upper body + sides)
- * Level 3 (Godspeed): bolts 0-11 (full body electric field)
+ * Level 1 (Ren):      bolts 0-2   (hair sparks)
+ * Level 2 (Hatsu):    bolts 0-7   (upper body + sides)
+ * Level 3 (Godspeed): bolts 0-11  (full body electric field)
  */
 
 /* Top bolts - from hair area */
@@ -82,6 +85,22 @@ static lv_point_t *bolt_pts_all[NUM_BOLTS] = {
 
 /* --- Bolt line style --- */
 static lv_style_t bolt_style;
+
+/* --- Draw the Killua sprite onto the canvas --- */
+
+static void draw_sprite(void) {
+    /* Fill canvas with white (background) */
+    lv_canvas_fill_bg(sprite_canvas, lv_color_white(), LV_OPA_COVER);
+
+    /* Draw black pixels from bitmap data */
+    for (int y = 0; y < KILLUA_HEIGHT; y++) {
+        for (int x = 0; x < KILLUA_WIDTH; x++) {
+            if (killua_pixel(x, y)) {
+                lv_canvas_set_px_color(sprite_canvas, x, y, lv_color_black());
+            }
+        }
+    }
+}
 
 /* --- Activity measurement --- */
 
@@ -141,7 +160,7 @@ static void display_timer_cb(struct k_timer *timer) {
     k_work_submit(&display_work);
 }
 
-/* Periodic timer to decay aura when typing stops */
+/* Periodic timer to decay aura back to Ten when idle */
 static K_TIMER_DEFINE(display_timer, display_timer_cb, NULL);
 
 /* --- Key event listener ---
@@ -169,7 +188,7 @@ ZMK_SUBSCRIPTION(nen_activity, zmk_position_state_changed);
 
 /* --- Status screen entry point ---
  * Called by ZMK display subsystem when CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM=y.
- * Creates the full screen layout: aura label + Killua sprite + lightning bolts.
+ * Creates the full screen layout: aura label + Killua canvas + lightning bolts.
  */
 
 lv_obj_t *zmk_display_status_screen(void) {
@@ -180,12 +199,12 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_label_set_text(aura_label, "Ten");
     lv_obj_align(aura_label, LV_ALIGN_TOP_LEFT, 4, 2);
 
-    /* Killua sprite - centered on display */
-    killua_img = lv_img_create(screen);
-    lv_img_set_src(killua_img, &killua_img_dsc);
-    lv_obj_set_pos(killua_img, SPRITE_X, SPRITE_Y);
-    lv_obj_set_style_img_recolor(killua_img, lv_color_black(), 0);
-    lv_obj_set_style_img_recolor_opa(killua_img, LV_OPA_COVER, 0);
+    /* Killua sprite - drawn on a small canvas */
+    sprite_canvas = lv_canvas_create(screen);
+    lv_canvas_set_buffer(sprite_canvas, sprite_buf,
+                         KILLUA_WIDTH, KILLUA_HEIGHT, LV_IMG_CF_TRUE_COLOR);
+    lv_obj_set_pos(sprite_canvas, SPRITE_X, SPRITE_Y);
+    draw_sprite();
 
     /* Bolt line style - thin black zigzag lines */
     lv_style_init(&bolt_style);

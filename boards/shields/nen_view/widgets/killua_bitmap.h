@@ -1,24 +1,25 @@
 #pragma once
 
-#include <lvgl.h>
-
 /*
- * Chibi Killua Zoldyck - 24x40 pixels, monochrome (LV_IMG_CF_ALPHA_1BIT)
+ * Chibi Killua Zoldyck - 24x40 monochrome pixel art
  * Based on kandipad bead pattern reference.
  *
- * Monochrome mapping:
- *   Filled (#) = outline, eyes, clothing, shoes
- *   Empty  (.) = background, white hair interior, skin
+ * Each row is 3 bytes (24 pixels), MSB = leftmost pixel.
+ * 1 = black (drawn), 0 = white (background).
  *
  * Layout:
- *   Rows  0-9:  Spiky hair (two prominent upward spikes, outline only)
- *   Rows 10-17: Face area visible through hair opening
+ *   Rows  0-9:  Spiky hair (two upward spikes, outline only)
+ *   Rows 10-17: Face visible through hair opening
  *   Rows 18-20: Collar / bow detail
- *   Rows 21-25: Upper body with arms
+ *   Rows 21-25: Upper body with arms out
  *   Rows 26-29: Torso / waist
- *   Rows 30-34: Legs (skin = empty)
- *   Rows 35-39: Shoes (dark = filled)
+ *   Rows 30-34: Legs
+ *   Rows 35-39: Shoes (filled)
  */
+
+#define KILLUA_WIDTH  24
+#define KILLUA_HEIGHT 40
+#define KILLUA_STRIDE 3 /* bytes per row */
 
 static const uint8_t killua_map[] = {
     /* Row  0 */ 0x00, 0x20, 0x40, /* ..........#......#...... */
@@ -63,13 +64,12 @@ static const uint8_t killua_map[] = {
     /* Row 39 */ 0x0F, 0x3C, 0xF0, /* ....####..####..####.... */
 };
 
-#define KILLUA_WIDTH  24
-#define KILLUA_HEIGHT 40
-
-static const lv_img_dsc_t killua_img_dsc = {
-    .header.cf = LV_IMG_CF_ALPHA_1BIT,
-    .header.w = KILLUA_WIDTH,
-    .header.h = KILLUA_HEIGHT,
-    .data_size = sizeof(killua_map),
-    .data = killua_map,
-};
+/* Check if pixel (x, y) is set in the bitmap */
+static inline bool killua_pixel(int x, int y) {
+    if (x < 0 || x >= KILLUA_WIDTH || y < 0 || y >= KILLUA_HEIGHT) {
+        return false;
+    }
+    int byte_idx = y * KILLUA_STRIDE + (x / 8);
+    int bit_idx = 7 - (x % 8);
+    return (killua_map[byte_idx] >> bit_idx) & 1;
+}
